@@ -1,111 +1,144 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Health Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Planner</title>
+
+<style>
+body{
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+background:#f5f6fa;
+margin:0;
+padding:20px;
+color:#111;
+}
+.card{
+background:white;
+padding:20px;
+border-radius:20px;
+box-shadow:0 5px 20px rgba(0,0,0,0.05);
+margin-bottom:20px;
+}
+h2{margin-top:0}
+input,select,button{
+width:100%;
+padding:12px;
+margin-top:8px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:16px;
+}
+button{
+background:#111;
+color:white;
+border:none;
+margin-top:12px;
+}
+.result{
+font-size:18px;
+margin-top:10px;
+}
+.food-item{
+display:flex;
+justify-content:space-between;
+margin-top:8px;
+padding:8px;
+background:#f1f2f6;
+border-radius:10px;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
+<h2>ข้อมูลพื้นฐาน</h2>
+<input id="age" type="number" placeholder="อายุ">
+<input id="height" type="number" placeholder="ส่วนสูง (ซม)">
+<input id="weight" type="number" placeholder="น้ำหนัก (กก)">
+<select id="goal">
+<option value="lose">ลดน้ำหนัก</option>
+<option value="maintain">รักษาน้ำหนัก</option>
+<option value="gain">เพิ่มน้ำหนัก</option>
+</select>
+<button onclick="calculate()">คำนวณสุขภาพ</button>
 
-  <h1>Health Dashboard</h1>
-
-  <!-- โปรไฟล์สุขภาพ -->
-  <section class="card">
-    <h2>โปรไฟล์สุขภาพ</h2>
-
-    <div class="grid">
-      <label>เพศ</label>
-      <select id="gender">
-        <option value="male">ชาย</option>
-        <option value="female">หญิง</option>
-      </select>
-
-      <label>อายุ</label>
-      <input type="number" id="age" value="30">
-
-      <label>ส่วนสูง (ซม.)</label>
-      <input type="number" id="height" value="170">
-
-      <label>น้ำหนัก (กก.)</label>
-      <input type="number" id="weight" value="70">
-
-      <label>ระดับกิจกรรม</label>
-      <select id="activity">
-        <option value="1.2">นั่งทำงาน</option>
-        <option value="1.375">กิจกรรมเบา</option>
-        <option value="1.55">ปานกลาง</option>
-        <option value="1.725">สูง</option>
-      </select>
-
-      <label>เป้าหมาย</label>
-      <select id="goal">
-        <option value="cut">ลดไขมัน</option>
-        <option value="maintain">คงสภาพ</option>
-        <option value="bulk">เพิ่มน้ำหนัก</option>
-      </select>
-
-      <label>ระยะเวลา (เดือน)</label>
-      <input type="number" id="months" value="3">
-    </div>
-
-    <button onclick="calculateHealth()">คำนวณ</button>
-
-    <div id="healthResult"></div>
-  </section>
-
-  <!-- บันทึกอาหาร -->
-  <section class="card">
-    <h2>บันทึกอาหาร</h2>
-
-    <div class="grid">
-      <label>อาหาร</label>
-      <select id="food">
-        <option value="egg">ไข่ 1 ฟอง</option>
-        <option value="chicken">อกไก่ 100g</option>
-        <option value="pork">หมู 100g</option>
-        <option value="rice">ข้าวสวย 1 ทัพพี</option>
-        <option value="banana">กล้วย 1 ลูก</option>
-      </select>
-
-      <label>จำนวน</label>
-      <input type="number" id="qty" value="1">
-    </div>
-
-    <button onclick="addMeal()">เพิ่มมื้อ</button>
-
-    <ul id="mealList"></ul>
-    <h3 id="totalCal">รวมแคล: 0</h3>
-  </section>
-
-  <!-- ตัวชี้วัดสุขภาพ -->
-  <section class="card">
-    <h2>ตัวชี้วัดสุขภาพ</h2>
-
-    <div class="grid">
-      <label>ความดัน (ตัวบน)</label>
-      <input type="number" id="bp1" value="120">
-
-      <label>ความดัน (ตัวล่าง)</label>
-      <input type="number" id="bp2" value="80">
-
-      <label>ชีพจร</label>
-      <input type="number" id="hr" value="70">
-
-      <label>น้ำตาลในเลือด</label>
-      <input type="number" id="sugar" value="90">
-    </div>
-
-    <button onclick="evaluateHealth()">ประเมินสุขภาพ</button>
-
-    <div id="status"></div>
-  </section>
-
+<div class="result" id="healthResult"></div>
 </div>
 
-<script src="app.js"></script>
+<div class="card">
+<h2>บันทึกอาหาร</h2>
+<input id="foodName" placeholder="ชื่ออาหาร">
+<input id="foodCal" type="number" placeholder="แคลอรี่">
+<button onclick="addFood()">เพิ่มอาหาร</button>
+<div id="foodList"></div>
+<div class="result" id="totalCal"></div>
+</div>
+
+<div class="card">
+<h2>ค่ามาตรฐานสุขภาพ</h2>
+<div id="standard"></div>
+</div>
+
+<script>
+let foods=[];
+
+function calculate(){
+let age=+ageInput().value;
+let h=+heightInput().value;
+let w=+weightInput().value;
+
+let bmi=(w/((h/100)**2)).toFixed(1);
+let bmr=Math.round(10*w+6.25*h-5*age+5);
+
+let status="";
+if(bmi<18.5) status="ผอม";
+else if(bmi<23) status="ปกติ";
+else if(bmi<25) status="ท้วม";
+else status="อ้วน";
+
+let protein=Math.round(w*1.6);
+let water=Math.round(w*33);
+
+healthResult.innerHTML=`
+BMI: ${bmi} (${status})<br>
+การเผาผลาญพื้นฐาน: ${bmr} kcal/วัน<br>
+โปรตีนแนะนำ: ${protein} กรัม/วัน<br>
+น้ำแนะนำ: ${water} ml/วัน
+`;
+}
+
+function addFood(){
+let name=foodName.value;
+let cal=+foodCal.value;
+if(!name||!cal)return;
+
+foods.push(cal);
+
+let div=document.createElement("div");
+div.className="food-item";
+div.innerHTML=`${name} <span>${cal} kcal</span>`;
+foodList.appendChild(div);
+
+let total=foods.reduce((a,b)=>a+b,0);
+totalCal.innerHTML="รวมที่กินวันนี้: "+total+" kcal";
+
+foodName.value="";
+foodCal.value="";
+}
+
+function ageInput(){return document.getElementById("age")}
+function heightInput(){return document.getElementById("height")}
+function weightInput(){return document.getElementById("weight")}
+
+standard.innerHTML=`
+ความดันปกติ: 90/60 – 120/80<br>
+ชีพจรปกติ: 60 – 100 bpm<br>
+น้ำตาลตอนเช้า: 70 – 99 mg/dL<br>
+BMI สุขภาพดี: 18.5 – 22.9
+`;
+</script>
+
 </body>
 </html>
