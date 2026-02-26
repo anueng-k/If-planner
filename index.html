@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IF Planner</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 select-none">
+
+    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col">
+        <header class="p-6 bg-teal-600 text-white text-center shadow-lg">
+            <h1 class="text-xl font-bold">IF Healthy Planner</h1>
+        </header>
+
+        <main class="flex-grow p-4 space-y-6 pb-24">
+            <div id="status-card" class="rounded-3xl p-8 text-center shadow-sm border-2 transition-colors duration-500">
+                <p id="phase-label" class="text-sm font-bold tracking-widest uppercase mb-2"></p>
+                <div id="timer-display" class="text-6xl font-black tabular-nums tracking-tight mb-2">00:00:00</div>
+                <p id="target-label" class="text-xs opacity-70"></p>
+            </div>
+
+            <section class="space-y-4">
+                <h2 class="font-bold text-slate-500 text-sm uppercase">Fasting Schedule</h2>
+                <div class="grid grid-cols-3 gap-2" id="schedule-btns">
+                    <button onclick="setPlan(12)" class="p-3 rounded-xl border bg-white">12/12</button>
+                    <button onclick="setPlan(14)" class="p-3 rounded-xl border bg-white">14/10</button>
+                    <button onclick="setPlan(16)" class="p-3 rounded-xl border bg-teal-600 text-white font-bold" id="default-plan">16/8</button>
+                    <button onclick="setPlan(18)" class="p-3 rounded-xl border bg-white">18/6</button>
+                    <button onclick="setPlan(20)" class="p-3 rounded-xl border bg-white">20/4</button>
+                    <button onclick="customPlan()" class="p-3 rounded-xl border bg-white italic">Edit</button>
+                </div>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="font-bold text-slate-500 text-sm uppercase">Eating Starts At</h2>
+                <div class="flex gap-2">
+                    <button onclick="setStartTime('12:00')" class="flex-1 p-3 rounded-xl border bg-white">12:00</button>
+                    <button onclick="setStartTime('12:30')" class="flex-1 p-3 rounded-xl border bg-white" id="default-time">12:30</button>
+                    <button onclick="setStartTime('13:00')" class="flex-1 p-3 rounded-xl border bg-white">13:00</button>
+                    <input type="time" onchange="setStartTime(this.value)" class="p-3 rounded-xl border bg-white">
+                </div>
+            </section>
+
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-800 leading-relaxed">
+                <strong>⚠️ Safety:</strong> Consult a doctor if you are under 18, pregnant, or have underlying conditions. This app is for informational use only.
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let fastingHours = localStorage.getItem('fH') || 16;
+        let startStr = localStorage.getItem('sT') || '12:30';
+
+        function setPlan(h) {
+            fastingHours = h;
+            localStorage.setItem('fH', h);
+            updateUI();
+        }
+
+        function setStartTime(t) {
+            startStr = t;
+            localStorage.setItem('sT', t);
+            updateUI();
+        }
+
+        function updateUI() {
+            const now = new Date();
+            const [h, m] = startStr.split(':');
+            let start = new Date();
+            start.setHours(h, m, 0);
+            
+            let eatingEnd = new Date(start.getTime() + (24 - fastingHours) * 60 * 60 * 1000);
+            let isEating = now >= start && now < eatingEnd;
+
+            // Handle overnight crossing
+            if (now < start && now < eatingEnd.getTime() - 86400000) isEating = true;
+
+            const card = document.getElementById('status-card');
+            const label = document.getElementById('phase-label');
+            const timer = document.getElementById('timer-display');
+            
+            if (isEating) {
+                card.className = "rounded-3xl p-8 text-center shadow-sm border-2 bg-emerald-50 border-emerald-500 text-emerald-900";
+                label.innerText = "🍴 Eating Window";
+                let diff = eatingEnd - now;
+                timer.innerText = formatTime(diff);
+            } else {
+                card.className = "rounded-3xl p-8 text-center shadow-sm border-2 bg-slate-100 border-slate-400 text-slate-600";
+                label.innerText = "🔥 Fasting Period";
+                let target = now > eatingEnd ? new Date(start.getTime() + 86400000) : start;
+                timer.innerText = formatTime(target - now);
+            }
+        }
+
+        function formatTime(ms) {
+            let s = Math.floor(ms / 1000);
+            let h = Math.floor(s / 3600);
+            let m = Math.floor((s % 3600) / 60);
+            let sec = s % 60;
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+        }
+
+        setInterval(updateUI, 1000);
+        updateUI();
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
