@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IF Planner</title>
+
+<style>
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  margin-top: 12px;
+}
+
+select, input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+}
+
+button {
+  background: black;
+  color: white;
+  border: none;
+  margin-top: 16px;
+}
+
+.result {
+  margin-top: 18px;
+  padding: 12px;
+  background: #f0f3f6;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>วางแผน IF</h2>
+
+<label>รูปแบบ IF</label>
+<select id="plan">
+  <option value="12">12/12</option>
+  <option value="16">16/8</option>
+  <option value="18">18/6</option>
+  <option value="20">20/4</option>
+</select>
+
+<label>เวลาเริ่มกิน</label>
+<input type="time" id="startTime" value="12:00">
+
+<label>เลือกวันทำ IF</label>
+<select id="day">
+  <option>ทุกวัน</option>
+  <option>จันทร์</option>
+  <option>อังคาร</option>
+  <option>พุธ</option>
+  <option>พฤหัส</option>
+  <option>ศุกร์</option>
+  <option>เสาร์</option>
+  <option>อาทิตย์</option>
+</select>
+
+<button onclick="calculateIF()">คำนวณเวลา</button>
+
+<div class="result" id="ifResult"></div>
+
+<hr>
+
+<h2>คำนวณแคลอรี่</h2>
+
+<label>น้ำหนัก (กก.)</label>
+<input type="number" id="weight" value="78">
+
+<label>ส่วนสูง (ซม.)</label>
+<input type="number" id="height" value="174">
+
+<button onclick="calculateCalories()">คำนวณแคลที่ควรกิน</button>
+
+<div class="result" id="calResult"></div>
+
+</div>
+
+<script>
+function calculateIF() {
+  const plan = parseInt(document.getElementById("plan").value);
+  const start = document.getElementById("startTime").value;
+  const day = document.getElementById("day").value;
+
+  let [h, m] = start.split(":").map(Number);
+
+  let eatHours = 24 - plan;
+  let endH = (h + eatHours) % 24;
+
+  let result = `
+  วัน: ${day}<br>
+  เวลากิน: ${start} - ${String(endH).padStart(2,"0")}:${String(m).padStart(2,"0")}<br>
+  เวลาอด: ${String(endH).padStart(2,"0")}:${String(m).padStart(2,"0")} - ${start}
+  `;
+
+  document.getElementById("ifResult").innerHTML = result;
+}
+
+function calculateCalories() {
+  let weight = parseFloat(document.getElementById("weight").value);
+  let height = parseFloat(document.getElementById("height").value);
+
+  let bmr = 10 * weight + 6.25 * height - 5 * 30 + 5;
+  let tdee = bmr * 1.3;
+  let cut = tdee - 500;
+
+  document.getElementById("calResult").innerHTML =
+    `แคลแนะนำต่อวัน ≈ ${Math.round(cut)} kcal`;
+}
+</script>
+
+</body>
+</html>
