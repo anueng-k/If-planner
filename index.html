@@ -4,98 +4,115 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IF Healthy Planner</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-900">
 
-<div class="max-w-md mx-auto min-h-screen p-4 space-y-6">
+<div class="max-w-md mx-auto p-4 space-y-6">
 
-<header class="p-6 bg-teal-600 text-white text-center rounded-3xl">
+<!-- HEADER -->
+<div class="bg-teal-600 text-white p-6 rounded-3xl text-center shadow">
 <h1 class="text-xl font-bold">IF Healthy Planner</h1>
-</header>
-
-<!-- สถานะ -->
-<div id="status-card" class="rounded-3xl p-6 text-center border bg-white">
-<p id="phase-label" class="font-bold"></p>
-<div id="timer-display" class="text-4xl font-bold">00:00:00</div>
+<p class="text-xs opacity-80">วางแผน IF แบบยืดหยุ่น ไม่เครียด</p>
 </div>
 
-<!-- ตั้งค่าแผน -->
-<section class="space-y-3">
-<h2 class="font-bold text-slate-500">ตั้งค่าการอดอาหาร</h2>
+<!-- TIMER CARD -->
+<div id="statusCard" class="bg-white p-6 rounded-3xl text-center border shadow-sm">
+<p id="phaseLabel" class="font-semibold"></p>
+<div id="timer" class="text-5xl font-black my-2">00:00:00</div>
+<p id="todayPlanLabel" class="text-xs text-slate-500"></p>
+</div>
 
+<!-- FASTING HOURS -->
+<div class="space-y-2">
+<p class="font-semibold text-slate-600">ชั่วโมงอดอาหาร (ชั่วโมง)</p>
 <div class="flex gap-2">
-<input id="fastingInput" type="number" min="10" max="23"
-class="border rounded-xl p-3 w-full"
-placeholder="ชั่วโมงอด เช่น 16">
-
-<button onclick="saveFasting()" 
-class="bg-teal-600 text-white px-4 rounded-xl">
-บันทึก
-</button>
+<input id="fastInput" type="number" min="10" max="23"
+class="border rounded-xl p-3 flex-1">
+<button onclick="saveFasting()" class="bg-teal-600 text-white px-4 rounded-xl">บันทึก</button>
 </div>
-</section>
+</div>
 
-<!-- ตั้งเวลาเริ่มกิน -->
-<section class="space-y-3">
-<h2 class="font-bold text-slate-500">เวลาเริ่มกิน</h2>
+<!-- START TIME -->
+<div class="space-y-2">
+<p class="font-semibold text-slate-600">เวลาเริ่มกิน</p>
+<input id="startTime" type="time" class="border rounded-xl p-3 w-full">
+</div>
 
-<input id="startTimeInput" type="time"
-class="border rounded-xl p-3 w-full"
-onchange="saveStartTime(this.value)">
-</section>
+<!-- QUICK PLANS -->
+<div class="space-y-2">
+<p class="font-semibold text-slate-600">เลือกแผนด่วน</p>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="setPlan(12)" class="border p-3 rounded-xl">12/12</button>
+<button onclick="setPlan(14)" class="border p-3 rounded-xl">14/10</button>
+<button onclick="setPlan(16)" class="border p-3 rounded-xl">16/8</button>
+<button onclick="setPlan(18)" class="border p-3 rounded-xl">18/6</button>
+<button onclick="setPlan(20)" class="border p-3 rounded-xl">20/4</button>
+</div>
+</div>
 
-<!-- ตั้งแผนรายวัน -->
-<section class="space-y-3">
-<h2 class="font-bold text-slate-500">แผนรายวัน</h2>
-<div id="day-plans" class="space-y-2"></div>
-</section>
+<!-- PLAN BY DAY -->
+<div class="space-y-3">
+<p class="font-semibold text-slate-600">แผนรายวัน</p>
+<div id="dayPlans"></div>
+</div>
 
 </div>
 
 <script>
-let fastingHours = parseInt(localStorage.getItem("fH")) || 16;
-let startStr = localStorage.getItem("sT") || "12:30";
-let dayPlans = JSON.parse(localStorage.getItem("dayPlans")) || {};
-
-document.getElementById("fastingInput").value = fastingHours;
-document.getElementById("startTimeInput").value = startStr;
-
-function saveFasting(){
-fastingHours = parseInt(document.getElementById("fastingInput").value);
-localStorage.setItem("fH", fastingHours);
-updateUI();
-}
-
-function saveStartTime(t){
-startStr = t;
-localStorage.setItem("sT", t);
-updateUI();
-}
-
 const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
+let fastingHours = parseInt(localStorage.getItem("fastingHours")) || 16;
+let startTime = localStorage.getItem("startTime") || "12:30";
+let dayPlans = JSON.parse(localStorage.getItem("dayPlans")) || {};
+
+document.getElementById("fastInput").value = fastingHours;
+document.getElementById("startTime").value = startTime;
+
+document.getElementById("startTime").addEventListener("change", e=>{
+startTime = e.target.value;
+localStorage.setItem("startTime", startTime);
+updateUI();
+});
+
+function saveFasting(){
+fastingHours = parseInt(document.getElementById("fastInput").value);
+localStorage.setItem("fastingHours", fastingHours);
+updateUI();
+}
+
+function setPlan(h){
+fastingHours = h;
+document.getElementById("fastInput").value = h;
+localStorage.setItem("fastingHours", h);
+updateUI();
+}
+
 function renderDayPlans(){
-const box = document.getElementById("day-plans");
+const box = document.getElementById("dayPlans");
 box.innerHTML = "";
 
 days.forEach((d,i)=>{
 const val = dayPlans[i] || fastingHours;
 
 box.innerHTML += `
-<div class="flex justify-between items-center bg-white p-3 rounded-xl border">
+<div class="flex justify-between items-center bg-white border rounded-xl p-3">
 <span>${d}</span>
-<input type="number" min="10" max="23"
-value="${val}"
-class="border rounded-lg p-1 w-20"
+<input type="number" value="${val}" min="10" max="23"
+class="border rounded-lg p-1 w-20 text-center"
 onchange="setDayPlan(${i}, this.value)">
 </div>`;
 });
 }
 
-function setDayPlan(i,v){
-dayPlans[i] = parseInt(v);
+function setDayPlan(i,val){
+dayPlans[i] = parseInt(val);
 localStorage.setItem("dayPlans", JSON.stringify(dayPlans));
 updateUI();
 }
@@ -106,42 +123,36 @@ return dayPlans[today] || fastingHours;
 }
 
 function updateUI(){
-const plan = getTodayPlan();
-
 const now = new Date();
-const [h,m] = startStr.split(":");
+const plan = getTodayPlan();
+const [h,m] = startTime.split(":");
 
 let start = new Date();
 start.setHours(h,m,0);
 
-let eatingEnd = new Date(start.getTime() + (24-plan)*3600000);
+let eatEnd = new Date(start.getTime() + (24-plan)*3600000);
 
-let isEating = now >= start && now < eatingEnd;
+let isEating = now >= start && now < eatEnd;
+if(now < start && now < eatEnd.getTime()-86400000) isEating=true;
 
-const label = document.getElementById("phase-label");
-const timer = document.getElementById("timer-display");
+const diff = isEating ? eatEnd-now : (now>eatEnd? new Date(start.getTime()+86400000)-now : start-now);
 
-if(isEating){
-label.innerText = "🍴 Eating Window";
-timer.innerText = formatTime(eatingEnd-now);
-}else{
-label.innerText = "🔥 Fasting Period";
-let target = now > eatingEnd ? new Date(start.getTime()+86400000) : start;
-timer.innerText = formatTime(target-now);
-}
+document.getElementById("timer").innerText = format(diff);
+document.getElementById("phaseLabel").innerText = isEating ? "ช่วงกินอาหาร" : "ช่วงอดอาหาร";
+document.getElementById("todayPlanLabel").innerText = "แผนวันนี้: " + plan + " ชั่วโมง";
 }
 
-function formatTime(ms){
-let s=Math.floor(ms/1000);
-let h=Math.floor(s/3600);
-let m=Math.floor((s%3600)/60);
-let sec=s%60;
+function format(ms){
+let s = Math.floor(ms/1000);
+let h = Math.floor(s/3600);
+let m = Math.floor((s%3600)/60);
+let sec = s%60;
 return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
 }
 
-setInterval(updateUI,1000);
 renderDayPlans();
 updateUI();
+setInterval(updateUI,1000);
 </script>
 
 </body>
