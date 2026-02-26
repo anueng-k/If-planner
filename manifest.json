@@ -1,21 +1,81 @@
-{
-  "name": "IF Planner",
-  "short_name": "IF Planner",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#0d9488",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "https://via.placeholder.com/192/0d9488/ffffff?text=IF",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://via.placeholder.com/512/0d9488/ffffff?text=IF",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+let totalCalories = 0;
+
+const foodDB = {
+  egg: 70,
+  chicken: 165,
+  pork: 242,
+  rice: 80,
+  banana: 105
+};
+
+function calculateHealth() {
+  let gender = document.getElementById("gender").value;
+  let age = +document.getElementById("age").value;
+  let weight = +document.getElementById("weight").value;
+  let height = +document.getElementById("height").value;
+  let activity = +document.getElementById("activity").value;
+  let goal = document.getElementById("goal").value;
+
+  let bmr;
+
+  if (gender === "male") {
+    bmr = 10*weight + 6.25*height - 5*age + 5;
+  } else {
+    bmr = 10*weight + 6.25*height - 5*age - 161;
+  }
+
+  let tdee = bmr * activity;
+
+  if (goal === "cut") tdee -= 500;
+  if (goal === "bulk") tdee += 300;
+
+  let bmi = weight / ((height/100)**2);
+
+  let protein = weight * 2;
+  let fat = weight * 0.8;
+  let water = weight * 35;
+
+  document.getElementById("healthResult").innerHTML = `
+    BMI: ${bmi.toFixed(2)} <br>
+    BMR: ${Math.round(bmr)} kcal <br>
+    พลังงานต่อวัน: ${Math.round(tdee)} kcal <br>
+    โปรตีนที่ควรได้รับ: ${Math.round(protein)} g <br>
+    ไขมันดี: ${Math.round(fat)} g <br>
+    น้ำที่ควรดื่ม: ${Math.round(water)} ml
+  `;
+}
+
+function addMeal() {
+  let food = document.getElementById("food").value;
+  let qty = +document.getElementById("qty").value;
+
+  let cal = foodDB[food] * qty;
+  totalCalories += cal;
+
+  let li = document.createElement("li");
+  li.innerText = food + " x" + qty + " = " + cal + " kcal";
+  document.getElementById("mealList").appendChild(li);
+
+  document.getElementById("totalCal").innerText =
+    "รวมแคล: " + totalCalories + " kcal";
+}
+
+function evaluateHealth() {
+  let bp1 = +document.getElementById("bp1").value;
+  let bp2 = +document.getElementById("bp2").value;
+  let hr = +document.getElementById("hr").value;
+  let sugar = +document.getElementById("sugar").value;
+
+  let result = "";
+
+  if (bp1 <= 120 && bp2 <= 80) result += "ความดันปกติ<br>";
+  else result += "ควรควบคุมความดัน<br>";
+
+  if (hr >= 60 && hr <= 100) result += "ชีพจรปกติ<br>";
+  else result += "ชีพจรผิดปกติ<br>";
+
+  if (sugar < 100) result += "น้ำตาลปกติ<br>";
+  else result += "น้ำตาลสูง<br>";
+
+  document.getElementById("status").innerHTML = result;
 }
