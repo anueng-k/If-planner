@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IF Smart Planner</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 font-sans">
+
+<div class="max-w-md mx-auto min-h-screen bg-white shadow">
+
+<header class="bg-teal-600 text-white p-4 text-center">
+<h1 class="text-xl font-bold">IF Smart Planner</h1>
+</header>
+
+<div class="p-4 space-y-6">
+
+<!-- TIMER -->
+<div id="status" class="p-6 rounded-2xl text-center border">
+<div id="phase" class="text-sm font-bold mb-2"></div>
+<div id="timer" class="text-4xl font-bold">00:00:00</div>
+</div>
+
+<!-- IF PLAN -->
+<div>
+<h2 class="font-bold mb-2">เลือกระบบ IF</h2>
+<div class="grid grid-cols-4 gap-2">
+<button onclick="setPlan(12)" class="plan p-2 border rounded">12/12</button>
+<button onclick="setPlan(16)" class="plan p-2 border rounded bg-teal-500 text-white">16/8</button>
+<button onclick="setPlan(18)" class="plan p-2 border rounded">18/6</button>
+<button onclick="setPlan(20)" class="plan p-2 border rounded">20/4</button>
+</div>
+</div>
+
+<!-- START TIME -->
+<div>
+<h2 class="font-bold mb-2">เวลาเริ่มกิน</h2>
+<input type="time" id="startTime" class="w-full border p-2 rounded">
+</div>
+
+<!-- BODY DATA -->
+<div>
+<h2 class="font-bold mb-2">ข้อมูลร่างกาย</h2>
+<div class="space-y-2">
+<input id="weight" type="number" placeholder="น้ำหนัก kg" class="w-full border p-2 rounded">
+<input id="height" type="number" placeholder="ส่วนสูง cm" class="w-full border p-2 rounded">
+<input id="age" type="number" placeholder="อายุ" class="w-full border p-2 rounded">
+</div>
+</div>
+
+<!-- GOAL -->
+<div>
+<h2 class="font-bold mb-2">เป้าหมาย</h2>
+<select id="goal" class="w-full border p-2 rounded">
+<option value="lose">ลดน้ำหนัก</option>
+<option value="maintain">คงน้ำหนัก</option>
+<option value="gain">เพิ่มน้ำหนัก</option>
+</select>
+
+<select id="months" class="w-full border p-2 rounded mt-2">
+<option value="1">1 เดือน</option>
+<option value="2">2 เดือน</option>
+<option value="3">3 เดือน</option>
+<option value="6">6 เดือน</option>
+</select>
+</div>
+
+<!-- RESULT -->
+<div class="bg-slate-50 p-4 rounded-xl">
+<h2 class="font-bold mb-2">คำแนะนำโภชนาการ</h2>
+<div id="result" class="text-sm space-y-1"></div>
+</div>
+
+<!-- PROTEIN FOOD -->
+<div class="bg-emerald-50 p-4 rounded-xl">
+<h2 class="font-bold mb-2">ตัวอย่างอาหารโปรตีน</h2>
+<ul class="text-sm space-y-1">
+<li>🥚 ไข่ไก่ 1 ฟอง = โปรตีน 6g</li>
+<li>🐷 หมูสุก 2 ช้อนโต๊ะ ≈ 7g</li>
+<li>🐔 อกไก่ 100g ≈ 22g</li>
+<li>🐟 ปลานึ่ง 100g ≈ 20g</li>
+<li>🥛 นม 1 แก้ว ≈ 8g</li>
+</ul>
+</div>
+
+</div>
+</div>
+
+<script>
+let fastingHours = 16;
+let startTime = "12:00";
+
+function setPlan(h){
+fastingHours = h;
+updateTimer();
+}
+
+document.getElementById("startTime").addEventListener("change", e=>{
+startTime = e.target.value;
+updateTimer();
+});
+
+function updateTimer(){
+const now = new Date();
+const [h,m] = startTime.split(":");
+let start = new Date();
+start.setHours(h,m,0);
+
+let eatingEnd = new Date(start.getTime() + (24-fastingHours)*3600000);
+let phase = "";
+let diff;
+
+if(now >= start && now < eatingEnd){
+phase = "ช่วงเวลากิน";
+diff = eatingEnd - now;
+}else{
+phase = "ช่วงอดอาหาร";
+let next = now > eatingEnd ? new Date(start.getTime()+86400000) : start;
+diff = next - now;
+}
+
+document.getElementById("phase").innerText = phase;
+document.getElementById("timer").innerText = format(diff);
+}
+
+function format(ms){
+let s = Math.floor(ms/1000);
+let h = Math.floor(s/3600);
+let m = Math.floor((s%3600)/60);
+let sec = s%60;
+return `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
+}
+
+setInterval(updateTimer,1000);
+
+document.querySelectorAll("input, select").forEach(el=>{
+el.addEventListener("change", calcNutrition);
+});
+
+function calcNutrition(){
+let w = Number(weight.value) || 70;
+let h = Number(height.value) || 170;
+let a = Number(age.value) || 25;
+
+let bmr = 10*w + 6.25*h - 5*a + 5;
+let cal = bmr * 1.4;
+
+if(goal.value=="lose") cal -= 500;
+if(goal.value=="gain") cal += 300;
+
+let protein = w * 1.6;
+let fat = w * 0.8;
+let water = w * 35;
+
+result.innerHTML = `
+แคลอรี่ต่อวัน ≈ ${Math.round(cal)} kcal<br>
+โปรตีน ≈ ${Math.round(protein)} g<br>
+ไขมันดี ≈ ${Math.round(fat)} g<br>
+น้ำ ≈ ${Math.round(water)} ml
+`;
+}
+
+calcNutrition();
+updateTimer();
+</script>
+
+</body>
+</html>
