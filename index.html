@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,69 +11,92 @@
 
 <div class="max-w-md mx-auto min-h-screen p-4 space-y-6">
 
-<header class="p-6 bg-teal-600 text-white text-center rounded-2xl">
+<header class="p-6 bg-teal-600 text-white text-center rounded-3xl">
 <h1 class="text-xl font-bold">IF Healthy Planner</h1>
 </header>
 
-<!-- STATUS -->
-<div id="status-card" class="rounded-3xl p-8 text-center border-2">
-<p id="phase-label" class="text-sm font-bold mb-2"></p>
-<div id="timer-display" class="text-5xl font-black">00:00:00</div>
+<!-- สถานะ -->
+<div id="status-card" class="rounded-3xl p-6 text-center border bg-white">
+<p id="phase-label" class="font-bold"></p>
+<div id="timer-display" class="text-4xl font-bold">00:00:00</div>
 </div>
 
-<!-- PLAN SELECT -->
-<section>
-<h2 class="font-bold text-slate-500 text-sm mb-2">Fasting Schedule</h2>
-<div class="grid grid-cols-3 gap-2">
-<button onclick="setPlan(12)" class="plan-btn p-3 border rounded-xl">12/12</button>
-<button onclick="setPlan(14)" class="plan-btn p-3 border rounded-xl">14/10</button>
-<button onclick="setPlan(16)" class="plan-btn p-3 border rounded-xl">16/8</button>
-<button onclick="setPlan(18)" class="plan-btn p-3 border rounded-xl">18/6</button>
-<button onclick="setPlan(20)" class="plan-btn p-3 border rounded-xl">20/4</button>
-</div>
-</section>
+<!-- ตั้งค่าแผน -->
+<section class="space-y-3">
+<h2 class="font-bold text-slate-500">ตั้งค่าการอดอาหาร</h2>
 
-<!-- START TIME -->
-<section>
-<h2 class="font-bold text-slate-500 text-sm mb-2">Eating Starts At</h2>
 <div class="flex gap-2">
-<button onclick="setStartTime('12:00')" class="p-3 border rounded-xl">12:00</button>
-<button onclick="setStartTime('12:30')" class="p-3 border rounded-xl">12:30</button>
-<button onclick="setStartTime('13:00')" class="p-3 border rounded-xl">13:00</button>
-<input type="time" onchange="setStartTime(this.value)" class="p-3 border rounded-xl">
+<input id="fastingInput" type="number" min="10" max="23"
+class="border rounded-xl p-3 w-full"
+placeholder="ชั่วโมงอด เช่น 16">
+
+<button onclick="saveFasting()" 
+class="bg-teal-600 text-white px-4 rounded-xl">
+บันทึก
+</button>
 </div>
 </section>
 
-<!-- PLAN BY DAY -->
-<section>
-<h2 class="font-bold text-slate-500 text-sm mb-2">Plan by Day</h2>
+<!-- ตั้งเวลาเริ่มกิน -->
+<section class="space-y-3">
+<h2 class="font-bold text-slate-500">เวลาเริ่มกิน</h2>
+
+<input id="startTimeInput" type="time"
+class="border rounded-xl p-3 w-full"
+onchange="saveStartTime(this.value)">
+</section>
+
+<!-- ตั้งแผนรายวัน -->
+<section class="space-y-3">
+<h2 class="font-bold text-slate-500">แผนรายวัน</h2>
 <div id="day-plans" class="space-y-2"></div>
 </section>
 
 </div>
 
 <script>
-
-let fastingHours = parseInt(localStorage.getItem('fH')) || 16;
-let startStr = localStorage.getItem('sT') || '12:30';
+let fastingHours = parseInt(localStorage.getItem("fH")) || 16;
+let startStr = localStorage.getItem("sT") || "12:30";
 let dayPlans = JSON.parse(localStorage.getItem("dayPlans")) || {};
+
+document.getElementById("fastingInput").value = fastingHours;
+document.getElementById("startTimeInput").value = startStr;
+
+function saveFasting(){
+fastingHours = parseInt(document.getElementById("fastingInput").value);
+localStorage.setItem("fH", fastingHours);
+updateUI();
+}
+
+function saveStartTime(t){
+startStr = t;
+localStorage.setItem("sT", t);
+updateUI();
+}
+
 const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-function setPlan(h){
-fastingHours = h;
-localStorage.setItem('fH',h);
-updateUI();
+function renderDayPlans(){
+const box = document.getElementById("day-plans");
+box.innerHTML = "";
+
+days.forEach((d,i)=>{
+const val = dayPlans[i] || fastingHours;
+
+box.innerHTML += `
+<div class="flex justify-between items-center bg-white p-3 rounded-xl border">
+<span>${d}</span>
+<input type="number" min="10" max="23"
+value="${val}"
+class="border rounded-lg p-1 w-20"
+onchange="setDayPlan(${i}, this.value)">
+</div>`;
+});
 }
 
-function setStartTime(t){
-startStr = t;
-localStorage.setItem('sT',t);
-updateUI();
-}
-
-function setDayPlan(dayIndex,plan){
-dayPlans[dayIndex] = parseInt(plan);
-localStorage.setItem("dayPlans",JSON.stringify(dayPlans));
+function setDayPlan(i,v){
+dayPlans[i] = parseInt(v);
+localStorage.setItem("dayPlans", JSON.stringify(dayPlans));
 updateUI();
 }
 
@@ -82,52 +105,29 @@ const today = new Date().getDay();
 return dayPlans[today] || fastingHours;
 }
 
-function renderDayPlans(){
-const box = document.getElementById("day-plans");
-box.innerHTML = "";
-
-days.forEach((d,i)=>{
-const value = dayPlans[i] || fastingHours;
-
-box.innerHTML += `
-<div class="flex justify-between items-center bg-white p-3 rounded-xl border">
-<span>${d}</span>
-<select onchange="setDayPlan(${i},this.value)" class="border rounded p-1">
-<option value="12" ${value==12?"selected":""}>12/12</option>
-<option value="14" ${value==14?"selected":""}>14/10</option>
-<option value="16" ${value==16?"selected":""}>16/8</option>
-<option value="18" ${value==18?"selected":""}>18/6</option>
-<option value="20" ${value==20?"selected":""}>20/4</option>
-</select>
-</div>
-`;
-});
-}
-
 function updateUI(){
-renderDayPlans();
+const plan = getTodayPlan();
 
-const fasting = getTodayPlan();
 const now = new Date();
-const [h,m] = startStr.split(':');
+const [h,m] = startStr.split(":");
 
 let start = new Date();
 start.setHours(h,m,0);
 
-let eatingEnd = new Date(start.getTime() + (24 - fasting)*3600000);
+let eatingEnd = new Date(start.getTime() + (24-plan)*3600000);
 
-let isEating = now>=start && now<eatingEnd;
+let isEating = now >= start && now < eatingEnd;
 
 const label = document.getElementById("phase-label");
 const timer = document.getElementById("timer-display");
 
 if(isEating){
-label.innerText="🍴 Eating Window";
-timer.innerText=formatTime(eatingEnd-now);
+label.innerText = "🍴 Eating Window";
+timer.innerText = formatTime(eatingEnd-now);
 }else{
-label.innerText="🔥 Fasting Period";
-let target = now>eatingEnd ? new Date(start.getTime()+86400000) : start;
-timer.innerText=formatTime(target-now);
+label.innerText = "🔥 Fasting Period";
+let target = now > eatingEnd ? new Date(start.getTime()+86400000) : start;
+timer.innerText = formatTime(target-now);
 }
 }
 
@@ -140,8 +140,8 @@ return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.to
 }
 
 setInterval(updateUI,1000);
+renderDayPlans();
 updateUI();
-
 </script>
 
 </body>
