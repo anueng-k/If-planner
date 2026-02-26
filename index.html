@@ -1,139 +1,111 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IF Health Pro</title>
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-body{
-background:#f1f5f9;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-}
-.card{
-background:white;
-border-radius:20px;
-padding:20px;
-box-shadow:0 10px 25px rgba(0,0,0,0.05);
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Health Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
-<body class="max-w-md mx-auto p-4 space-y-4">
+<body>
 
-<!-- HEADER -->
-<div class="card text-center">
-<h1 class="text-xl font-bold">IF Health Planner</h1>
-<p class="text-sm text-gray-500">ระบบดูแลสุขภาพครบวงจร</p>
+<div class="container">
+
+  <h1>Health Dashboard</h1>
+
+  <!-- โปรไฟล์สุขภาพ -->
+  <section class="card">
+    <h2>โปรไฟล์สุขภาพ</h2>
+
+    <div class="grid">
+      <label>เพศ</label>
+      <select id="gender">
+        <option value="male">ชาย</option>
+        <option value="female">หญิง</option>
+      </select>
+
+      <label>อายุ</label>
+      <input type="number" id="age" value="30">
+
+      <label>ส่วนสูง (ซม.)</label>
+      <input type="number" id="height" value="170">
+
+      <label>น้ำหนัก (กก.)</label>
+      <input type="number" id="weight" value="70">
+
+      <label>ระดับกิจกรรม</label>
+      <select id="activity">
+        <option value="1.2">นั่งทำงาน</option>
+        <option value="1.375">กิจกรรมเบา</option>
+        <option value="1.55">ปานกลาง</option>
+        <option value="1.725">สูง</option>
+      </select>
+
+      <label>เป้าหมาย</label>
+      <select id="goal">
+        <option value="cut">ลดไขมัน</option>
+        <option value="maintain">คงสภาพ</option>
+        <option value="bulk">เพิ่มน้ำหนัก</option>
+      </select>
+
+      <label>ระยะเวลา (เดือน)</label>
+      <input type="number" id="months" value="3">
+    </div>
+
+    <button onclick="calculateHealth()">คำนวณ</button>
+
+    <div id="healthResult"></div>
+  </section>
+
+  <!-- บันทึกอาหาร -->
+  <section class="card">
+    <h2>บันทึกอาหาร</h2>
+
+    <div class="grid">
+      <label>อาหาร</label>
+      <select id="food">
+        <option value="egg">ไข่ 1 ฟอง</option>
+        <option value="chicken">อกไก่ 100g</option>
+        <option value="pork">หมู 100g</option>
+        <option value="rice">ข้าวสวย 1 ทัพพี</option>
+        <option value="banana">กล้วย 1 ลูก</option>
+      </select>
+
+      <label>จำนวน</label>
+      <input type="number" id="qty" value="1">
+    </div>
+
+    <button onclick="addMeal()">เพิ่มมื้อ</button>
+
+    <ul id="mealList"></ul>
+    <h3 id="totalCal">รวมแคล: 0</h3>
+  </section>
+
+  <!-- ตัวชี้วัดสุขภาพ -->
+  <section class="card">
+    <h2>ตัวชี้วัดสุขภาพ</h2>
+
+    <div class="grid">
+      <label>ความดัน (ตัวบน)</label>
+      <input type="number" id="bp1" value="120">
+
+      <label>ความดัน (ตัวล่าง)</label>
+      <input type="number" id="bp2" value="80">
+
+      <label>ชีพจร</label>
+      <input type="number" id="hr" value="70">
+
+      <label>น้ำตาลในเลือด</label>
+      <input type="number" id="sugar" value="90">
+    </div>
+
+    <button onclick="evaluateHealth()">ประเมินสุขภาพ</button>
+
+    <div id="status"></div>
+  </section>
+
 </div>
 
-<!-- PROFILE -->
-<div class="card space-y-3">
-<h2 class="font-bold">ข้อมูลสุขภาพ</h2>
-
-<input id="weight" type="number" placeholder="น้ำหนัก (kg)" class="w-full border p-2 rounded">
-<input id="height" type="number" placeholder="ส่วนสูง (cm)" class="w-full border p-2 rounded">
-<input id="age" type="number" placeholder="อายุ" class="w-full border p-2 rounded">
-
-<select id="goal" class="w-full border p-2 rounded">
-<option value="lose">ลดไขมัน</option>
-<option value="maintain">คงน้ำหนัก</option>
-<option value="gain">เพิ่มกล้าม</option>
-</select>
-
-<button onclick="calculateHealth()" class="w-full bg-teal-600 text-white p-2 rounded">
-คำนวณสุขภาพ
-</button>
-
-<div id="healthResult" class="text-sm text-gray-700"></div>
-</div>
-
-<!-- IF TIMER -->
-<div class="card text-center">
-<h2 class="font-bold mb-2">IF Timer</h2>
-
-<select id="plan" class="border p-2 rounded">
-<option value="12">12/12</option>
-<option value="16">16/8</option>
-<option value="18">18/6</option>
-<option value="20">20/4</option>
-</select>
-
-<input id="startTime" type="time" value="12:00" class="border p-2 rounded mt-2">
-
-<div id="timer" class="text-3xl font-bold mt-3">--:--</div>
-</div>
-
-<!-- NUTRITION -->
-<div class="card">
-<h2 class="font-bold">โภชนาการแนะนำ</h2>
-<div id="nutrition"></div>
-</div>
-
-<!-- HEALTH STANDARDS -->
-<div class="card">
-<h2 class="font-bold">ค่ามาตรฐานสุขภาพ</h2>
-<ul class="text-sm space-y-1">
-<li>ความดันปกติ: 90/60 — 120/80</li>
-<li>ชีพจรปกติ: 60 — 100 ครั้ง/นาที</li>
-<li>น้ำตาลก่อนอาหาร: 70 — 99 mg/dL</li>
-<li>น้ำตาลหลังอาหาร: ต่ำกว่า 140 mg/dL</li>
-</ul>
-</div>
-
-<script>
-function calculateHealth(){
-let w = parseFloat(weight.value);
-let h = parseFloat(height.value)/100;
-let ageVal = parseFloat(age.value);
-
-if(!w || !h) return;
-
-let bmi = w/(h*h);
-let bmr = w*24;
-
-let cal = bmr*1.4;
-if(goal.value==="lose") cal-=300;
-if(goal.value==="gain") cal+=300;
-
-let protein = w*1.6;
-let water = w*30;
-
-healthResult.innerHTML = `
-BMI: ${bmi.toFixed(1)}<br>
-BMR: ${Math.round(bmr)} kcal<br>
-แคลที่ควรกิน: ${Math.round(cal)} kcal/วัน
-`;
-
-nutrition.innerHTML = `
-โปรตีน: ${Math.round(protein)} g/วัน<br>
-น้ำ: ${Math.round(water)} ml/วัน<br>
-ไข่ ~ ${Math.round(protein/6)} ฟองต่อวัน (ประมาณ)
-`;
-}
-
-setInterval(()=>{
-let plan = parseInt(document.getElementById("plan").value);
-let start = document.getElementById("startTime").value;
-
-if(!start) return;
-
-let [h,m] = start.split(":");
-let startTime = new Date();
-startTime.setHours(h,m,0);
-
-let endTime = new Date(startTime.getTime()+(24-plan)*3600000);
-let now = new Date();
-
-let diff = (now<endTime?endTime: new Date(startTime.getTime()+86400000)) - now;
-
-let hours = Math.floor(diff/3600000);
-let mins = Math.floor(diff%3600000/60000);
-
-timer.innerText = hours+"h "+mins+"m";
-},1000);
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
