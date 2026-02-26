@@ -3,141 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Health Planner</title>
-
-<style>
-body{
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-background:#f5f6fa;
-margin:0;
-padding:20px;
-color:#111;
-}
-.card{
-background:white;
-padding:20px;
-border-radius:20px;
-box-shadow:0 5px 20px rgba(0,0,0,0.05);
-margin-bottom:20px;
-}
-h2{margin-top:0}
-input,select,button{
-width:100%;
-padding:12px;
-margin-top:8px;
-border-radius:10px;
-border:1px solid #ddd;
-font-size:16px;
-}
-button{
-background:#111;
-color:white;
-border:none;
-margin-top:12px;
-}
-.result{
-font-size:18px;
-margin-top:10px;
-}
-.food-item{
-display:flex;
-justify-content:space-between;
-margin-top:8px;
-padding:8px;
-background:#f1f2f6;
-border-radius:10px;
-}
-</style>
+<title>Health Super App</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="bg-slate-100 font-sans">
 
-<div class="card">
-<h2>ข้อมูลพื้นฐาน</h2>
-<input id="age" type="number" placeholder="อายุ">
-<input id="height" type="number" placeholder="ส่วนสูง (ซม)">
-<input id="weight" type="number" placeholder="น้ำหนัก (กก)">
-<select id="goal">
-<option value="lose">ลดน้ำหนัก</option>
-<option value="maintain">รักษาน้ำหนัก</option>
-<option value="gain">เพิ่มน้ำหนัก</option>
-</select>
-<button onclick="calculate()">คำนวณสุขภาพ</button>
+<div class="max-w-5xl mx-auto p-4">
 
-<div class="result" id="healthResult"></div>
+<!-- HEADER -->
+<div class="bg-white rounded-2xl shadow p-6 mb-4">
+<h1 class="text-2xl font-bold text-slate-800">ระบบสุขภาพองค์กร</h1>
+<p class="text-slate-500 text-sm">บันทึกข้อมูลสุขภาพและโภชนาการ</p>
 </div>
 
-<div class="card">
-<h2>บันทึกอาหาร</h2>
+<!-- USER FORM -->
+<div class="bg-white rounded-2xl shadow p-6 mb-4">
+<h2 class="font-bold mb-4">ข้อมูลบุคคล</h2>
+
+<div class="grid md:grid-cols-4 gap-3">
+<input id="name" placeholder="ชื่อ" class="border p-2 rounded">
+<input id="age" type="number" placeholder="อายุ" class="border p-2 rounded">
+<input id="weight" type="number" placeholder="น้ำหนัก kg" class="border p-2 rounded">
+<input id="height" type="number" placeholder="ส่วนสูง cm" class="border p-2 rounded">
+</div>
+
+<button onclick="saveProfile()" class="mt-3 bg-teal-600 text-white px-4 py-2 rounded">บันทึกข้อมูล</button>
+</div>
+
+<!-- HEALTH INPUT -->
+<div class="bg-white rounded-2xl shadow p-6 mb-4">
+<h2 class="font-bold mb-4">ค่าทางสุขภาพ</h2>
+
+<div class="grid md:grid-cols-3 gap-3">
+<input id="bp" placeholder="ความดัน 120/80" class="border p-2 rounded">
+<input id="pulse" type="number" placeholder="ชีพจร bpm" class="border p-2 rounded">
+<input id="sugar" type="number" placeholder="น้ำตาล mg/dL" class="border p-2 rounded">
+</div>
+
+<button onclick="saveVitals()" class="mt-3 bg-teal-600 text-white px-4 py-2 rounded">บันทึกค่า</button>
+</div>
+
+<!-- FOOD LOG -->
+<div class="bg-white rounded-2xl shadow p-6 mb-4">
+<h2 class="font-bold mb-4">บันทึกอาหาร</h2>
+
+<div class="grid md:grid-cols-3 gap-3">
 <input id="foodName" placeholder="ชื่ออาหาร">
-<input id="foodCal" type="number" placeholder="แคลอรี่">
-<button onclick="addFood()">เพิ่มอาหาร</button>
-<div id="foodList"></div>
-<div class="result" id="totalCal"></div>
+<input id="cal" type="number" placeholder="แคลอรี่">
+<input id="protein" type="number" placeholder="โปรตีน g">
 </div>
 
-<div class="card">
-<h2>ค่ามาตรฐานสุขภาพ</h2>
-<div id="standard"></div>
+<button onclick="addFood()" class="mt-3 bg-teal-600 text-white px-4 py-2 rounded">เพิ่มมื้ออาหาร</button>
+
+<div id="foodList" class="mt-4 text-sm"></div>
+</div>
+
+<!-- RESULT -->
+<div class="bg-white rounded-2xl shadow p-6">
+<h2 class="font-bold mb-4">วิเคราะห์สุขภาพ</h2>
+
+<div id="result" class="space-y-2 text-slate-700"></div>
+</div>
+
 </div>
 
 <script>
-let foods=[];
 
-function calculate(){
-let age=+ageInput().value;
-let h=+heightInput().value;
-let w=+weightInput().value;
+let profile = JSON.parse(localStorage.getItem("profile")) || {};
+let foods = JSON.parse(localStorage.getItem("foods")) || [];
 
-let bmi=(w/((h/100)**2)).toFixed(1);
-let bmr=Math.round(10*w+6.25*h-5*age+5);
+function saveProfile(){
+profile = {
+name: name.value,
+age: age.value,
+weight: weight.value,
+height: height.value
+};
+localStorage.setItem("profile", JSON.stringify(profile));
+calculateHealth();
+}
 
-let status="";
-if(bmi<18.5) status="ผอม";
-else if(bmi<23) status="ปกติ";
-else if(bmi<25) status="ท้วม";
-else status="อ้วน";
-
-let protein=Math.round(w*1.6);
-let water=Math.round(w*33);
-
-healthResult.innerHTML=`
-BMI: ${bmi} (${status})<br>
-การเผาผลาญพื้นฐาน: ${bmr} kcal/วัน<br>
-โปรตีนแนะนำ: ${protein} กรัม/วัน<br>
-น้ำแนะนำ: ${water} ml/วัน
-`;
+function saveVitals(){
+profile.bp = bp.value;
+profile.pulse = pulse.value;
+profile.sugar = sugar.value;
+localStorage.setItem("profile", JSON.stringify(profile));
+calculateHealth();
 }
 
 function addFood(){
-let name=foodName.value;
-let cal=+foodCal.value;
-if(!name||!cal)return;
-
-foods.push(cal);
-
-let div=document.createElement("div");
-div.className="food-item";
-div.innerHTML=`${name} <span>${cal} kcal</span>`;
-foodList.appendChild(div);
-
-let total=foods.reduce((a,b)=>a+b,0);
-totalCal.innerHTML="รวมที่กินวันนี้: "+total+" kcal";
-
-foodName.value="";
-foodCal.value="";
+foods.push({
+name: foodName.value,
+cal: Number(cal.value),
+protein: Number(protein.value)
+});
+localStorage.setItem("foods", JSON.stringify(foods));
+renderFoods();
+calculateHealth();
 }
 
-function ageInput(){return document.getElementById("age")}
-function heightInput(){return document.getElementById("height")}
-function weightInput(){return document.getElementById("weight")}
+function renderFoods(){
+foodList.innerHTML = foods.map(f =>
+`<div class="border-b py-1">${f.name} — ${f.cal} kcal / โปรตีน ${f.protein}g</div>`
+).join("");
+}
 
-standard.innerHTML=`
-ความดันปกติ: 90/60 – 120/80<br>
-ชีพจรปกติ: 60 – 100 bpm<br>
-น้ำตาลตอนเช้า: 70 – 99 mg/dL<br>
-BMI สุขภาพดี: 18.5 – 22.9
+function calculateHealth(){
+if(!profile.weight || !profile.height) return;
+
+let h = profile.height/100;
+let bmi = profile.weight/(h*h);
+let bmr = 10*profile.weight + 6.25*profile.height - 5*profile.age + 5;
+let tdee = bmr*1.4;
+
+let totalCal = foods.reduce((a,b)=>a+b.cal,0);
+let totalProtein = foods.reduce((a,b)=>a+b.protein,0);
+
+let status = "ปกติ";
+if(bmi>25) status="น้ำหนักเกิน";
+if(bmi<18.5) status="ผอม";
+
+result.innerHTML = `
+<div>👤 ชื่อ: ${profile.name||"-"}</div>
+<div>📊 BMI: ${bmi.toFixed(2)} (${status})</div>
+<div>🔥 BMR: ${Math.round(bmr)} kcal</div>
+<div>⚡ พลังงานที่ควรได้รับ: ${Math.round(tdee)} kcal/วัน</div>
+<div>🍽 กินวันนี้: ${totalCal} kcal</div>
+<div>🥩 โปรตีนวันนี้: ${totalProtein} g</div>
+<div>❤️ ความดัน: ${profile.bp||"-"}</div>
+<div>💓 ชีพจร: ${profile.pulse||"-"}</div>
+<div>🧪 น้ำตาล: ${profile.sugar||"-"}</div>
 `;
+}
+
+renderFoods();
+calculateHealth();
+
 </script>
 
 </body>
