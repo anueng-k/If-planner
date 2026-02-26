@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IF Healthy Planner</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+<div class="max-w-md mx-auto min-h-screen pb-24">
+
+<!-- HEADER -->
+<header class="bg-teal-600 text-white p-5 text-center shadow">
+<h1 class="text-xl font-bold">IF Healthy Planner</h1>
+<p class="text-xs opacity-80">ตัวทดลองคำนวณโภชนาการ</p>
+</header>
+
+<!-- PROFILE -->
+<div class="p-4 space-y-3">
+<div class="bg-white p-4 rounded-2xl shadow space-y-3">
+
+<h2 class="font-bold text-teal-700">ข้อมูลพื้นฐาน</h2>
+
+<div class="grid grid-cols-3 gap-2">
+<input id="weight" type="number" placeholder="น้ำหนัก kg" class="border p-2 rounded-lg">
+<input id="height" type="number" placeholder="ส่วนสูง cm" class="border p-2 rounded-lg">
+<input id="age" type="number" placeholder="อายุ" class="border p-2 rounded-lg">
+</div>
+
+<select id="goal" class="w-full border p-2 rounded-lg">
+<option value="lose">ลดไขมัน</option>
+<option value="maintain">คงน้ำหนัก</option>
+<option value="gain">เพิ่มน้ำหนัก</option>
+</select>
+
+<input id="months" type="number" placeholder="เป้าหมายกี่เดือน" class="w-full border p-2 rounded-lg">
+
+<button onclick="calculate()" class="w-full bg-teal-600 text-white p-2 rounded-lg">
+คำนวณโภชนาการ
+</button>
+
+<div id="result" class="text-sm space-y-1"></div>
+
+</div>
+</div>
+
+<!-- IF TIMER -->
+<div class="px-4">
+<div class="bg-white p-4 rounded-2xl shadow space-y-3">
+
+<h2 class="font-bold text-teal-700">IF Timer</h2>
+
+<div class="grid grid-cols-4 gap-2">
+<button onclick="setPlan(12)" class="border rounded-lg p-2">12/12</button>
+<button onclick="setPlan(16)" class="border rounded-lg p-2">16/8</button>
+<button onclick="setPlan(18)" class="border rounded-lg p-2">18/6</button>
+<button onclick="setPlan(20)" class="border rounded-lg p-2">20/4</button>
+</div>
+
+<input type="time" id="startTime" class="w-full border p-2 rounded-lg">
+
+<div id="timer" class="text-center text-2xl font-bold"></div>
+
+</div>
+</div>
+
+<!-- MEAL LOG -->
+<div class="p-4">
+<div class="bg-white p-4 rounded-2xl shadow space-y-3">
+
+<h2 class="font-bold text-teal-700">บันทึกอาหาร</h2>
+
+<select id="foodSelect" class="w-full border p-2 rounded-lg">
+<option value="70">ไข่ต้ม 1 ฟอง (70 kcal)</option>
+<option value="250">ไข่เจียว 1 ฟอง (250 kcal)</option>
+<option value="165">อกไก่ 100g (165 kcal)</option>
+<option value="240">หมูผัด 1 ถ้วย (240 kcal)</option>
+<option value="130">ข้าวสวย 1 ทัพพี (130 kcal)</option>
+<option value="90">กล้วย 1 ลูก (90 kcal)</option>
+</select>
+
+<button onclick="addFood()" class="w-full bg-emerald-600 text-white p-2 rounded-lg">
+เพิ่มอาหาร
+</button>
+
+<div class="text-sm">
+แคลวันนี้: <span id="totalCal" class="font-bold">0</span> kcal
+</div>
+
+</div>
+</div>
+
+</div>
+
+<script>
+let totalCalories = 0;
+let fastingHours = 16;
+
+function calculate(){
+let w = weight.value;
+let h = height.value;
+let a = age.value;
+let goal = document.getElementById("goal").value;
+
+if(!w) return;
+
+let cal = w * 24 * 1.4;
+
+if(goal=="lose") cal -= 300;
+if(goal=="gain") cal += 300;
+
+let protein = w * 1.6;
+let fat = cal * 0.25 / 9;
+let water = w * 30;
+
+result.innerHTML = `
+🔥 แคลต่อวัน: ${Math.round(cal)} kcal<br>
+🥩 โปรตีน: ${Math.round(protein)} g<br>
+🥑 ไขมันดี: ${Math.round(fat)} g<br>
+💧 น้ำ: ${Math.round(water/1000)} ลิตร
+`;
+}
+
+function setPlan(h){
+fastingHours = h;
+updateTimer();
+}
+
+function updateTimer(){
+let start = document.getElementById("startTime").value;
+if(!start) return;
+
+let now = new Date();
+let [hh,mm] = start.split(":");
+
+let startTime = new Date();
+startTime.setHours(hh,mm,0);
+
+let eatEnd = new Date(startTime.getTime() + (24-fastingHours)*3600000);
+
+let diff = eatEnd - now;
+
+let h = Math.floor(diff/3600000);
+let m = Math.floor(diff%3600000/60000);
+
+timer.innerText = "เหลือเวลากิน " + h + "ชม " + m + "นาที";
+}
+
+setInterval(updateTimer,1000);
+
+function addFood(){
+let cal = parseInt(foodSelect.value);
+totalCalories += cal;
+totalCal.innerText = totalCalories;
+}
+</script>
+
+</body>
+</html>
